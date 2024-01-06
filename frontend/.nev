@@ -1,0 +1,4 @@
+AUTH_SECRET=590582b87b8f34f064a1a82a873d56fcd4ec8f4dbaa9887370377f13ce9a02b4
+COGNITO_CLIENT_ID=36pp4rt7i5dv5q0of5pj1kf6p1
+COGNITO_CLIENT_SECRET=15tuou26q62l2l752ivpe4rvpanatq5ddoj9mavd0dbu71pu6u5e
+COGNITO_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_mska8Nx5M

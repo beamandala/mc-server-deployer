@@ -2,6 +2,7 @@ use crate::AppState;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use aws_sdk_dynamodb::types::AttributeValue;
 use serde::{Deserialize, Serialize};
+use serde_dynamo::from_item;
 use std::collections::HashMap;
 
 #[derive(Deserialize)]
@@ -9,21 +10,21 @@ struct GetUserRequestData {
     email: String,
 }
 
-// #[derive(Serialize, Deserialize, Debug)]
-// struct GetUserResponseData {
-//     item: Option<UserDetails>,
-// }
-//
-// #[derive(Deserialize, Debug)]
-// struct UserDetails {
-//     email: AttributeValue,
-//     name: AttributeValue,
-// }
+#[derive(Serialize, Deserialize, Debug)]
+struct GetUserResponseData {
+    user: Option<UserDetails>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct UserDetails {
+    email: String,
+    name: String,
+}
 
 #[get("/user")]
 pub async fn get_user(
     data: web::Data<AppState>,
-    properties: web::Json<NewUserRequestData>,
+    properties: web::Json<GetUserRequestData>,
 ) -> impl Responder {
     let db = data.db_client.lock().unwrap();
 
@@ -34,23 +35,27 @@ pub async fn get_user(
         .send()
         .await;
 
+    drop(db);
+
     match get_user_res {
         Ok(res) => {
             println!("{:?}", res);
 
-            if let item = Some(res.item) {
-                // let user: GetUserResponseData = serde_json::from_str(item).unwrap();
-                // return HttpResponse::Ok(web::Json(user));
+            if let Some(item) = res.item {
+                let user: UserDetails = from_item(item).unwrap();
+                println!("{:?}", user);
+
+                return web::Json(GetUserResponseData { user: Some(user) });
+            } else {
+                return web::Json(GetUserResponseData { user: None });
             }
         }
         Err(e) => {
             println!("{:?}", e);
 
-            return HttpResponse::InternalServerError();
+            return web::Json(GetUserResponseData { user: None });
         }
     }
-
-    HttpResponse::Ok()
 }
 
 #[derive(Deserialize)]
